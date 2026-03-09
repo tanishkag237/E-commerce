@@ -1,12 +1,14 @@
 import { User, LayoutDashboard,  ChevronRight,ChevronLeft, LogOutIcon, Users, PackageCheckIcon } from 'lucide-react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { useSelector } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
+import { logout } from '../features/auth/authSlice'
 
 
 const Sidebar = ({ isCollapsed, onToggle }) => {
     const {user,role} = useSelector((state)=>state.auth)
     //console.log("Role from sidebar :", role)
     const navigate = useNavigate()
+    const dispatch = useDispatch()
 
     const AdminPages = [
         {
@@ -49,7 +51,8 @@ const Sidebar = ({ isCollapsed, onToggle }) => {
     const pagesToDisplay = role ==="admin" ? AdminPages : UserPages
 
     const handleLogout = () =>{
-      localStorage.removeItem('token');
+      // localStorage.removeItem('token');
+      dispatch(logout())
       navigate('/',{ replace: true })
     }
 

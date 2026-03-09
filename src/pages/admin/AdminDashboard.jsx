@@ -12,6 +12,7 @@ import { usePagination } from "../../hooks/usePagination";
 import { Outlet } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProductsThunk } from "../../features/products/productSlice";
+import PageNotFound from "../PageNotFound"
 
 const AdminDashboard = () => {
   const dispatch = useDispatch()
@@ -84,7 +85,8 @@ const AdminDashboard = () => {
     usePagination(sortedProducts, 5);
 
   if (isLoading) return <Loader />;
-  if(error) return <h1>Error : {error.message}</h1>
+  if(error) return <PageNotFound/>
+  
   return (
     <div>
       <div className="m-2 md:flex mb-2 justify-end">

@@ -48,7 +48,7 @@ export const deleteProductsThunk = createAsyncThunk(
             return id;
         }
         catch(err){
-            return rejectWithValue(err.message||"Failed to delete product")
+            return rejectWithValue("wth: ",err.message||"Failed to delete product")
         }
     }
 )

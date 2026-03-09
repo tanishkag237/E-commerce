@@ -9,7 +9,7 @@ const ProtectedRoute = ({allowedRole}) => {
     }
 
     if(allowedRole && role!==allowedRole){
-      return <Navigate to="/" replace />;
+      return <Navigate to="*" replace />;
     }
 
   return <Outlet/>

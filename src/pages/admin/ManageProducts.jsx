@@ -15,6 +15,8 @@ import {
   deleteProductsThunk,
 } from "../../features/products/productSlice";
 
+import PageNotFound from '../PageNotFound'
+
 const productColumns = [
   { header: "ID", accessor: "id" },
   {
@@ -132,7 +134,7 @@ const ManageProducts = () => {
   };
 
   if (isLoading) return <Loader />;
-  if (error) return <p>{error}</p>;
+  if (error) return <PageNotFound/>
 
   return (
     <div className="m-3">

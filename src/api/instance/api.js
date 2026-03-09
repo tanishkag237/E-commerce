@@ -1,10 +1,10 @@
 import axios from "axios";
 
 export const fakeStoreApi = axios.create({
-    baseURL:"https://fakestoreapi.com",
+    baseURL:import.meta.env.VITE_API_URL,
     timeout:5000
 })
-
+console.log(import.meta.env.VITE_API_URL);
 fakeStoreApi.interceptors.request.use(
      (config)=>{
         console.log("Request sent : ",config.url )
@@ -18,7 +18,7 @@ fakeStoreApi.interceptors.request.use(
 
 fakeStoreApi.interceptors.response.use(
      (response)=>{
-        if(response.status !== 200 || response.status !==201 ){
+        if(response.status !== 200 && response.status !==201 ){
             console.log("Error in user API")
         }
         return response;

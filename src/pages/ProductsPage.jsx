@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { Star } from "lucide-react";
 import { useSelector } from "react-redux";
+import PageNotFound from '../pages/PageNotFound'
 
 const ProductsPage = () => {
   const { id } = useParams();
@@ -11,10 +12,10 @@ const ProductsPage = () => {
   const product = products.find((prod) => prod.id === Number(id));
   const navigate = useNavigate()
 
-  if (error)
+  if (!product)
     return (
       <div className="flex items-center justify-center h-[60vh] text-xl font-semibold text-gray-500">
-        Product not found
+       <PageNotFound/>
       </div>
     );
 

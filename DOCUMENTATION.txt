@@ -1,0 +1,834 @@
+================================================================================
+                     E-COMMERCE REDUX — PROJECT DOCUMENTATION
+================================================================================
+
+Project Name  : E-Commerce (Fake Store)
+Version       : 0.0.0
+Type          : Frontend Single-Page Application (SPA)
+Build Tool    : Vite 7 (with SWC)
+Date          : March 2026
+
+================================================================================
+TABLE OF CONTENTS
+================================================================================
+
+  1.  Project Overview
+  2.  Tech Stack & Dependencies
+  3.  Project Structure
+  4.  Getting Started
+  5.  Environment & Configuration
+  6.  Authentication & Authorization
+  7.  Redux State Management
+  8.  API Layer
+  9.  Routing
+  10. Pages & Features
+  11. Components
+  12. Custom Hooks
+  13. Layout System
+  14. Context (Legacy Auth)
+  15. Data Flow Diagrams
+  16. Demo Credentials
+  17. Known Issues & Notes
+
+================================================================================
+1. PROJECT OVERVIEW
+================================================================================
+
+Fake Store is a role-based e-commerce web application built with React and
+Redux Toolkit. It consumes the public FakeStoreAPI (https://fakestoreapi.com)
+to simulate a real-world store with two distinct user roles:
+
+  - USER   : Can browse products, search/filter/sort, and view product details.
+  - ADMIN  : Can do everything a user can, plus manage products (full CRUD)
+             and view all registered users.
+
+State is persisted across page refreshes using redux-persist, and toast
+notifications (via Sonner) provide feedback for all async operations.
+
+================================================================================
+2. TECH STACK & DEPENDENCIES
+================================================================================
+
+RUNTIME DEPENDENCIES
+--------------------
+  Package                  Version     Purpose
+  ─────────────────────────────────────────────────────────────────────────────
+  react                    ^19.2.0     UI library
+  react-dom                ^19.2.0     DOM renderer
+  react-router-dom         ^7.13.1     Client-side routing
+  @reduxjs/toolkit         ^2.11.2     Redux state management (slice/thunk)
+  react-redux              ^9.2.0      React bindings for Redux
+  redux-persist            ^6.0.0      Persist Redux state to localStorage
+  axios                    ^1.13.5     HTTP client for API calls
+  tailwindcss              ^4.2.1      Utility-first CSS framework
+  @tailwindcss/vite        ^4.2.1      Tailwind CSS Vite plugin
+  lucide-react             ^0.575.0    SVG icon library
+  sonner                   ^2.0.7      Toast notification library
+
+DEV DEPENDENCIES
+-----------------
+  Package                  Version     Purpose
+  ─────────────────────────────────────────────────────────────────────────────
+  vite                     ^7.3.1      Build tool & dev server
+  @vitejs/plugin-react-swc ^4.2.2      React fast refresh using SWC compiler
+  eslint                   ^9.39.1     JavaScript linter
+  eslint-plugin-react-hooks ^7.0.1     Enforces Rules of Hooks
+  eslint-plugin-react-refresh ^0.4.24  Validates React Refresh boundaries
+  @eslint/js               ^9.39.1     ESLint core JS rules
+  globals                  ^16.5.0     Global variable definitions for ESLint
+  @types/react             ^19.2.7     TypeScript type definitions for React
+  @types/react-dom         ^19.2.3     TypeScript type definitions for React DOM
+
+================================================================================
+3. PROJECT STRUCTURE
+================================================================================
+
+e-commerce-redux/
+├── index.html                      HTML entry point
+├── vite.config.js                  Vite configuration (React SWC + Tailwind)
+├── eslint.config.js                ESLint flat config
+├── package.json                    Project manifest & scripts
+├── README.md                       Basic readme
+├── DOCUMENTATION.txt               ← This file
+└── src/
+    ├── main.jsx                    App bootstrap (Provider + PersistGate)
+    ├── App.jsx                     Root component (Toaster + AppRoutes)
+    ├── store.js                    Redux store + persistor setup
+    ├── index.css                   Global Tailwind CSS entry
+    │
+    ├── api/                        API layer
+    │   ├── instance/
+    │   │   └── api.js              Axios instance with base URL & interceptors
+    │   ├── auth.api.js             Login endpoint
+    │   ├── products.api.js         Products CRUD endpoints
+    │   └── users.api.js            Users fetch endpoints
+    │
+    ├── features/                   Redux slices (state + thunks)
+    │   ├── auth/
+    │   │   ├── authSlice.js        Auth state: login thunk, logout action
+    │   │   └── authReducer.js      Plain reducer used by AuthContext (legacy)
+    │   ├── products/
+    │   │   └── productSlice.js     Products state: fetch, add, update, delete
+    │   └── users/
+    │       └── userSlice.js        Users state: fetch all users
+    │
+    ├── context/
+    │   └── AuthContext.jsx         Context-based auth (alternative/legacy)
+    │
+    ├── hooks/                      Custom React hooks
+    │   ├── useAuth.js              Access AuthContext values
+    │   ├── useDebounce.js          Debounce a value by a given delay
+    │   ├── useLocalStorage.js      Sync state with localStorage
+    │   └── usePagination.js        Client-side pagination logic
+    │
+    ├── layout/                     App shell components
+    │   ├── MainLayout.jsx          Sidebar + Header + Outlet wrapper
+    │   ├── Header.jsx              Top navigation bar with logo
+    │   └── Sidebar.jsx             Collapsible nav sidebar (role-aware)
+    │
+    ├── pages/                      Route-level page components
+    │   ├── Login.jsx               Login form
+    │   ├── PageNotFound.jsx        404 page
+    │   ├── ProductsPage.jsx        Product detail view (shared by both roles)
+    │   ├── Profile.jsx             Logged-in user profile
+    │   ├── admin/
+    │   │   ├── AdminDashboard.jsx  Admin product grid with search/filter/sort
+    │   │   ├── ManageProducts.jsx  Admin product table with full CRUD
+    │   │   └── ViewUsers.jsx       Admin view of all registered users
+    │   └── users/
+    │       └── UserDashboard.jsx   User product grid with search/filter/sort
+    │
+    ├── routes/
+    │   ├── AppRoutes.jsx           Centralized route definitions
+    │   └── ProtectedRoute.jsx      Auth & role-based route guard
+    │
+    ├── components/
+    │   ├── ProductCard.jsx         Product card with image, title, price
+    │   ├── ProductModal.jsx        Add / Edit product form modal
+    │   └── common/
+    │       ├── DeleteModal.jsx     Confirm-before-delete dialog
+    │       ├── Error.jsx           Generic error message UI
+    │       ├── Loader.jsx          Full-screen spinner
+    │       ├── Search.jsx          Debounced search input
+    │       └── Table.jsx           Generic reusable data table
+    │
+    ├── services/                   (Reserved for future service modules)
+    └── utils/                      (Reserved for future utility functions)
+
+================================================================================
+4. GETTING STARTED
+================================================================================
+
+PREREQUISITES
+-------------
+  - Node.js >= 18.x
+  - npm >= 9.x (or pnpm / yarn)
+
+INSTALLATION
+------------
+  1. Clone the repository:
+       git clone <repository-url>
+       cd e-commerce-redux
+
+  2. Install dependencies:
+       npm install
+
+DEVELOPMENT SERVER
+------------------
+  npm run dev
+  → Starts the Vite dev server (default: http://localhost:5173)
+
+BUILD FOR PRODUCTION
+--------------------
+  npm run build
+  → Outputs static files to /dist
+
+PREVIEW PRODUCTION BUILD
+------------------------
+  npm run preview
+  → Serves the /dist folder locally
+
+LINTING
+-------
+  npm run lint
+  → Runs ESLint across the project
+
+================================================================================
+5. ENVIRONMENT & CONFIGURATION
+================================================================================
+
+VITE CONFIGURATION (vite.config.js)
+-------------------------------------
+  - React plugin using SWC compiler (@vitejs/plugin-react-swc) for fast HMR
+  - Tailwind CSS integrated as a Vite plugin (@tailwindcss/vite)
+  - No environment variables (.env) required — API base URL is hardcoded
+    in src/api/instance/api.js
+
+API BASE URL
+------------
+  https://fakestoreapi.com
+  - Timeout: 5,000ms (5 seconds)
+  - Defined in: src/api/instance/api.js
+
+PERSISTENCE (redux-persist)
+----------------------------
+  - Storage engine : localStorage
+  - Persist key    : "root"
+  - Whitelisted slices: auth, products, users
+  - All three slices are rehydrated on page load via PersistGate
+
+================================================================================
+6. AUTHENTICATION & AUTHORIZATION
+================================================================================
+
+AUTHENTICATION FLOW
+-------------------
+  1. User enters username + password on the Login page.
+  2. Form validates that both fields are non-empty.
+  3. loginThunk is dispatched:
+       a. Calls POST /auth/login → receives a JWT token.
+       b. Determines role:
+            username === "mor_2314"  →  "admin"
+            any other username       →  "user"
+       c. Calls GET /users to fetch all users.
+       d. Finds the matching user object by username.
+       e. Persists token, role, and user in localStorage.
+       f. Returns { user, role, token } to Redux.
+  4. On success: navigates to role-specific home page.
+     On failure: shows an error toast.
+
+LOGOUT FLOW
+-----------
+  1. User clicks the logout button in the Sidebar.
+  2. logout action dispatched → clears localStorage + Redux state.
+  3. navigate('/') redirects to Login page.
+
+ROLE-BASED ACCESS
+-----------------
+  Role       Home Route             Accessible Routes
+  ─────────────────────────────────────────────────────────
+  admin      /admin/dashboard       /admin/dashboard
+                                    /admin/dashboard/:id
+                                    /admin/manage-products
+                                    /admin/view-users
+                                    /profile
+  user       /products              /products
+                                    /products/:id
+                                    /profile
+
+  ProtectedRoute (src/routes/ProtectedRoute.jsx) enforces this:
+    - If not authenticated → redirect to /
+    - If wrong role       → redirect to /
+
+AUTH STATE SHAPE (Redux)
+-------------------------
+  {
+    user           : Object | null   // Full user object from FakeStoreAPI
+    role           : "admin" | "user" | null
+    token          : string | null   // JWT token
+    isAuthenticated: boolean
+    error          : string | null
+    isLoading      : "idle" | "loading"
+  }
+
+================================================================================
+7. REDUX STATE MANAGEMENT
+================================================================================
+
+STORE SETUP (src/store.js)
+---------------------------
+  - Uses configureStore from @reduxjs/toolkit
+  - Three slices combined with combineReducers:
+      auth     → authSlice.reducer
+      products → productSlice.reducer
+      users    → userSlice.reducer
+  - Wrapped in persistReducer with whitelist: ["auth", "products", "users"]
+  - Serializable check middleware ignores redux-persist action types
+  - Exports: store, persistor
+
+─────────────────────────────────────────────────────────────────────────────
+AUTH SLICE  (src/features/auth/authSlice.js)
+─────────────────────────────────────────────────────────────────────────────
+
+  THUNKS:
+    loginThunk(credentials)
+      - Input  : { username, password }
+      - Success: returns { user, role, token }
+      - Failure: rejectWithValue(error.message)
+
+  ACTIONS:
+    logout()
+      - Clears localStorage (token, role, user)
+      - Resets all auth state fields
+
+  EXTRA REDUCERS:
+    loginThunk.pending   → isLoading = "loading", error = null
+    loginThunk.fulfilled → sets user, role, token, isAuthenticated = true
+    loginThunk.rejected  → sets error, isLoading = "idle"
+
+─────────────────────────────────────────────────────────────────────────────
+PRODUCT SLICE  (src/features/products/productSlice.js)
+─────────────────────────────────────────────────────────────────────────────
+
+  STATE SHAPE:
+    { data: [], error: null, isLoading: false }
+
+  THUNKS:
+    fetchProductsThunk()
+      - GET /products → sets data[]
+
+    addProductsThunk(newData)
+      - POST /products → pushes returned product to data[]
+
+    updateProductsThunk({ id, newData })
+      - PUT /products/:id → finds and replaces product in data[]
+
+    deleteProductsThunk(id)
+      - DELETE /products/:id → filters out deleted product from data[]
+
+  NOTE: FakeStoreAPI does not actually persist mutations. Responses are
+        simulated. The Redux state is updated optimistically using the
+        API response payload.
+
+─────────────────────────────────────────────────────────────────────────────
+USER SLICE  (src/features/users/userSlice.js)
+─────────────────────────────────────────────────────────────────────────────
+
+  STATE SHAPE:
+    { data: [], isLoading: false, error: null }
+
+  THUNKS:
+    fetchUsersThunk()
+      - GET /users → sets data[]
+
+================================================================================
+8. API LAYER
+================================================================================
+
+AXIOS INSTANCE  (src/api/instance/api.js)
+------------------------------------------
+  - Base URL : https://fakestoreapi.com
+  - Timeout  : 5000ms
+  - Request interceptor : logs request URL to console
+  - Response interceptor: logs errors to console, passes response through
+
+  NOTE: The response interceptor has a logic bug — the condition
+  `response.status !== 200 || response.status !== 201` is always true
+  (any number is either ≠ 200 or ≠ 201). This is a known issue and does
+  not affect functionality since the check only logs a message.
+
+AUTH API  (src/api/auth.api.js)
+--------------------------------
+  loginUser({ username, password })
+    POST /auth/login
+    Returns: JWT token string
+
+PRODUCTS API  (src/api/products.api.js)
+----------------------------------------
+  getProducts()
+    GET /products
+    Returns: Product[]
+
+  getSingleProduct(id)
+    GET /products/:id
+    Returns: Product object
+
+  addProduct(newData)
+    POST /products
+    Body: { title, price, description, category, image }
+    Returns: Created product object (simulated, new ID = 21)
+
+  updateProduct(id, newData)
+    PUT /products/:id
+    Body: updated product fields
+    Returns: Updated product object
+
+  deleteProducts(id)
+    DELETE /products/:id
+    Returns: Deleted product object
+
+USERS API  (src/api/users.api.js)
+----------------------------------
+  getAllUsers()
+    GET /users
+    Returns: User[]
+
+  getUser(id)
+    GET /users/:id
+    Returns: Single user object
+
+PRODUCT OBJECT SHAPE
+----------------------
+  {
+    id          : number
+    title       : string
+    price       : number
+    description : string
+    category    : string      // "men's clothing" | "women's clothing"
+                              // | "jewelery" | "electronics"
+    image       : string      // URL
+    rating      : {
+      rate  : number          // e.g. 3.9
+      count : number          // e.g. 120
+    }
+  }
+
+USER OBJECT SHAPE
+------------------
+  {
+    id       : number
+    username : string
+    email    : string
+    password : string
+    name     : { firstname: string, lastname: string }
+    address  : {
+      city     : string
+      street   : string
+      number   : number
+      zipcode  : string
+      geolocation: { lat: string, long: string }
+    }
+    phone    : string
+  }
+
+================================================================================
+9. ROUTING
+================================================================================
+
+ROUTE TABLE  (src/routes/AppRoutes.jsx)
+-----------------------------------------
+
+  Path                        Component            Protection
+  ──────────────────────────────────────────────────────────────────────────────
+  /                           Login                Public
+  /profile                    Profile              Authenticated (any role)
+  /products                   UserDashboard        Authenticated + role="user"
+  /products/:id               ProductsPage         Authenticated + role="user"
+  /admin/dashboard            AdminDashboard       Authenticated + role="admin"
+  /admin/manage-products      ManageProducts       Authenticated + role="admin"
+  /admin/dashboard/:id        ProductsPage         Authenticated + role="admin"
+  /admin/view-users           ViewUsers            Authenticated + role="admin"
+  * (catch-all)               PageNotFound         Public
+
+ROUTE NESTING
+--------------
+  BrowserRouter
+  └── Routes
+      ├── Route path="/"              → Login
+      └── Route (ProtectedRoute — auth check)
+          └── Route (MainLayout)
+              ├── Route path="/profile"    → Profile
+              ├── Route (ProtectedRoute — role="user")
+              │   ├── Route path="/products"       → UserDashboard
+              │   └── Route path="/products/:id"   → ProductsPage
+              └── Route (ProtectedRoute — role="admin")
+                  ├── Route path="/admin/dashboard"         → AdminDashboard
+                  ├── Route path="/admin/manage-products"   → ManageProducts
+                  ├── Route path="/admin/dashboard/:id"     → ProductsPage
+                  └── Route path="/admin/view-users"        → ViewUsers
+
+PROTECTED ROUTE LOGIC  (src/routes/ProtectedRoute.jsx)
+-------------------------------------------------------
+  - Reads isAuthenticated and role from Redux (state.auth)
+  - If not authenticated → <Navigate to="/" replace />
+  - If allowedRole provided and role doesn't match → <Navigate to="/" replace />
+  - Otherwise → renders <Outlet/>
+
+================================================================================
+10. PAGES & FEATURES
+================================================================================
+
+─────────────────────────────────────────────────────────────────────────────
+LOGIN PAGE  (src/pages/Login.jsx)
+─────────────────────────────────────────────────────────────────────────────
+  - Two-column layout: form on left, SVG illustration on right (hidden on mobile)
+  - Controlled inputs for username and password
+  - Password visibility toggle (EyeIcon / EyeOff from lucide-react)
+  - Auto-focuses username field on mount (useRef)
+  - Dispatches loginThunk on submit
+  - Navigates to /admin/dashboard or /products based on role
+  - Shows toast on success or error
+  - Submit button disabled while loading
+
+─────────────────────────────────────────────────────────────────────────────
+USER DASHBOARD  (src/pages/users/UserDashboard.jsx)
+─────────────────────────────────────────────────────────────────────────────
+  - Fetches products on mount (only if store is empty)
+  - Displays products in a 3-column responsive grid via ProductCard
+  - Search by title (debounced via Search component)
+  - Filter by category (dropdown with dynamic categories)
+  - Sort by: Default | Title A→Z | Title Z→A | Price Low→High | Price High→Low
+  - Client-side pagination: 6 products per page (usePagination hook)
+  - Shows Loader while fetching
+
+─────────────────────────────────────────────────────────────────────────────
+ADMIN DASHBOARD  (src/pages/admin/AdminDashboard.jsx)
+─────────────────────────────────────────────────────────────────────────────
+  - Same product grid layout as UserDashboard
+  - 5 products per page (usePagination hook)
+  - Same search + filter + sort capabilities
+  - Links to /admin/dashboard/:id for product detail
+
+─────────────────────────────────────────────────────────────────────────────
+MANAGE PRODUCTS  (src/pages/admin/ManageProducts.jsx)
+─────────────────────────────────────────────────────────────────────────────
+  - Tabular view of all products using the reusable Table component
+  - Columns: ID | Title (linked to detail) | Price | Category (colored badge)
+  - Sort by: Default | Title A→Z | Title Z→A | Price Low→High | Price High→Low
+  - Add Product: opens ProductModal in create mode
+  - Edit Product: opens ProductModal pre-filled with selected product data
+  - Delete Product: opens DeleteModal for confirmation, then dispatches delete
+  - Dispatches addProductsThunk / updateProductsThunk / deleteProductsThunk
+  - Shows success/error toasts after each operation
+
+─────────────────────────────────────────────────────────────────────────────
+VIEW USERS  (src/pages/admin/ViewUsers.jsx)
+─────────────────────────────────────────────────────────────────────────────
+  - Fetches all users on mount via fetchUsersThunk
+  - Displays in Table: ID | Username | Email | Phone | City
+  - Shows Loader while fetching, error text on failure
+  - Success toast on fetch completion
+
+─────────────────────────────────────────────────────────────────────────────
+PRODUCT DETAIL PAGE  (src/pages/ProductsPage.jsx)
+─────────────────────────────────────────────────────────────────────────────
+  - Reads :id from URL params
+  - Finds matching product from Redux store (no extra API call)
+  - Displays: category badge, title, star rating, description, price
+  - Image with hover zoom animation
+  - Back button → navigate(-1)
+  - Shows PageNotFound if product not found
+
+─────────────────────────────────────────────────────────────────────────────
+PROFILE PAGE  (src/pages/Profile.jsx)
+─────────────────────────────────────────────────────────────────────────────
+  - Reads user from Redux state (state.auth.user)
+  - Displays: Full Name, User ID, Email, Phone, Address
+  - Shows "No User Found" if user is null
+
+─────────────────────────────────────────────────────────────────────────────
+404 PAGE  (src/pages/PageNotFound.jsx)
+─────────────────────────────────────────────────────────────────────────────
+  - Displayed for unknown routes (catch-all "*")
+  - Frown icon + message + "Go back to Login" link
+
+================================================================================
+11. COMPONENTS
+================================================================================
+
+─────────────────────────────────────────────────────────────────────────────
+ProductCard  (src/components/ProductCard.jsx)
+─────────────────────────────────────────────────────────────────────────────
+  Props    : { product: Product }
+  Behavior : Reads role from Redux to determine link path
+             (/products/:id for users, /admin/dashboard/:id for admins)
+  Displays : Product image with hover zoom, title (line-clamp), price
+
+─────────────────────────────────────────────────────────────────────────────
+ProductModal  (src/components/ProductModal.jsx)
+─────────────────────────────────────────────────────────────────────────────
+  Props    : { onProductAddition(data, isEditMode), selectedProduct, closeModal }
+  Modes    :
+    - Create mode (selectedProduct is null/undefined)
+    - Edit mode   (selectedProduct is provided, form pre-filled via useEffect)
+  Fields   : Title, Price, Description, Category, Image (file input)
+  Behavior : Calls onProductAddition with form data + id (edit) or just data (create)
+  UI       : Overlay modal, X close button, required validation on all fields
+
+─────────────────────────────────────────────────────────────────────────────
+DeleteModal  (src/components/common/DeleteModal.jsx)
+─────────────────────────────────────────────────────────────────────────────
+  Props    : { title, deleteEntity(), closeModal() }
+  Displays : Confirmation dialog with item name
+  Buttons  : "No, cancel" and "Yes, delete"
+
+─────────────────────────────────────────────────────────────────────────────
+Table  (src/components/common/Table.jsx)
+─────────────────────────────────────────────────────────────────────────────
+  Props    : { data[], columns[], action?(row) }
+  Column   : { header: string, accessor: string, cell?(row): JSX }
+  Behavior : Generic reusable table. Supports custom cell renderers and
+             optional action column.
+  Styling  : Sticky black header, hover row highlight + scale animation
+
+─────────────────────────────────────────────────────────────────────────────
+Search  (src/components/common/Search.jsx)
+─────────────────────────────────────────────────────────────────────────────
+  Props    : { onSearchChange(value) }
+  Behavior : Calls onSearchChange immediately on keystroke AND again after
+             500ms debounce via useDebounce hook
+  UI       : Rounded search bar with SearchIcon
+
+─────────────────────────────────────────────────────────────────────────────
+Loader  (src/components/common/Loader.jsx)
+─────────────────────────────────────────────────────────────────────────────
+  Props    : none
+  Displays : Centered full-screen spinning ring animation
+  Used in  : PersistGate loading state, all async data-fetching pages
+
+─────────────────────────────────────────────────────────────────────────────
+Error  (src/components/common/Error.jsx)
+─────────────────────────────────────────────────────────────────────────────
+  Props    : { message: string }
+  Displays : Centered error message in full screen
+
+================================================================================
+12. CUSTOM HOOKS
+================================================================================
+
+─────────────────────────────────────────────────────────────────────────────
+useDebounce  (src/hooks/useDebounce.js)
+─────────────────────────────────────────────────────────────────────────────
+  Signature : useDebounce(value, delay) → debouncedValue
+  Behavior  : Returns the value only after it hasn't changed for `delay` ms
+  Used in   : Search component (500ms delay)
+
+─────────────────────────────────────────────────────────────────────────────
+usePagination  (src/hooks/usePagination.js)
+─────────────────────────────────────────────────────────────────────────────
+  Signature : usePagination(data, itemsPerPage) → { currentData, currentPage,
+              totalPages, nextPage, prevPage, goToPage }
+  Behavior  : Slices data array for the current page. Resets to page 1
+              whenever the source data array changes (useEffect on data).
+  Used in   : AdminDashboard (5/page), UserDashboard (6/page)
+
+─────────────────────────────────────────────────────────────────────────────
+useLocalStorage  (src/hooks/useLocalStorage.js)
+─────────────────────────────────────────────────────────────────────────────
+  Signature : useLocalStorage(key, initialValue) → [storedValue, setValue]
+  Behavior  : Initializes state from localStorage, syncs back on change
+  Note      : Currently defined but not actively used in the app
+              (auth persistence is handled by authSlice + redux-persist)
+
+─────────────────────────────────────────────────────────────────────────────
+useAuth  (src/hooks/useAuth.js)
+─────────────────────────────────────────────────────────────────────────────
+  Signature : useAuth() → AuthContext value
+  Behavior  : Returns the AuthContext (works only inside AuthProvider)
+  Note      : Used with the legacy Context-based auth system. The app
+              currently uses Redux for auth — this hook is not actively called.
+
+================================================================================
+13. LAYOUT SYSTEM
+================================================================================
+
+MainLayout  (src/layout/MainLayout.jsx)
+-----------------------------------------
+  - Wraps all authenticated pages
+  - Manages sidebar collapse state (useState, default: collapsed)
+  - Sidebar width: 80px (collapsed) / 256px (expanded)
+  - Main content shifts left padding accordingly for responsive resize
+  - Renders: <Sidebar> + <Header> + <Outlet>
+
+Header  (src/layout/Header.jsx)
+---------------------------------
+  - Fixed top bar (height: 80px)
+  - Displays logo image + "FAKE STORE" text
+  - Styled with custom wine background and shadow
+
+Sidebar  (src/layout/Sidebar.jsx)
+-----------------------------------
+  - Fixed left panel, full height, z-index 30
+  - Collapsible: shows only icons when collapsed, icons + labels when expanded
+  - Role-aware navigation:
+      Admin nav : Dashboard | Manage Products | View Users | Profile
+      User nav  : Dashboard | Profile
+  - Uses NavLink for active style highlighting
+  - Logout button (red) dispatches logout and navigates to /
+  - Toggle button (chevron) calls onToggle prop
+  - Icons from lucide-react
+
+================================================================================
+14. CONTEXT (LEGACY AUTH)
+================================================================================
+
+AuthContext  (src/context/AuthContext.jsx)
+-------------------------------------------
+  This is an alternative, context-based authentication implementation that was
+  created before the Redux slice approach was adopted.
+
+  It uses useReducer + authReducer (src/features/auth/authReducer.js) and
+  exposes the same login/logout methods via React Context.
+
+  CURRENT STATUS: NOT USED in the app's main render tree.
+  - main.jsx wraps the app in <Provider> (Redux), not <AuthProvider>
+  - ProtectedRoute reads from Redux (useSelector), not AuthContext
+  - Sidebar uses useSelector + dispatch, not useAuth
+
+  The authReducer.js and AuthContext.jsx remain in the codebase and could be
+  used if a Context-only architecture was needed without Redux.
+
+  ACTIONS supported by authReducer:
+    LOGIN_SUCCESS → sets user, role, token, isAuthenticated: true
+    LOGOUT        → clears user, role, token, isAuthenticated: false
+
+================================================================================
+15. DATA FLOW DIAGRAMS
+================================================================================
+
+LOGIN FLOW
+----------
+
+  User Input (Login.jsx)
+       │
+       ▼
+  dispatch(loginThunk(credentials))
+       │
+       ├─► POST /auth/login  ──► JWT token
+       │
+       ├─► Role determination (hardcoded by username)
+       │
+       ├─► GET /users  ──► Find matching user by username
+       │
+       ├─► localStorage.setItem(token, role, user)
+       │
+       └─► Redux state update: { user, role, token, isAuthenticated: true }
+                │
+                ▼
+         navigate based on role
+         (/admin/dashboard or /products)
+
+
+PRODUCT CRUD FLOW (Admin)
+--------------------------
+
+  ManageProducts.jsx
+       │
+       ├─► dispatch(fetchProductsThunk())
+       │        └─► GET /products → state.products.data[]
+       │
+       ├─► [Add]    dispatch(addProductsThunk(newProduct))
+       │        └─► POST /products → state.products.data.push(result)
+       │
+       ├─► [Edit]   dispatch(updateProductsThunk({ id, newData }))
+       │        └─► PUT /products/:id → state.products.data[index] = result
+       │
+       └─► [Delete] dispatch(deleteProductsThunk(id))
+                └─► DELETE /products/:id → state.products.data.filter(...)
+
+
+SEARCH / FILTER / SORT FLOW
+-----------------------------
+
+  Raw products from Redux
+       │
+       ▼
+  filteredProducts = products.filter(
+      title includes searchTerm
+      && category matches selectedCategory
+  )
+       │
+       ▼
+  sortedProducts = filteredProducts.sort(by isSorted option)
+       │
+       ▼
+  usePagination(sortedProducts, itemsPerPage)
+       │
+       ▼
+  currentData rendered as ProductCard grid
+
+================================================================================
+16. DEMO CREDENTIALS
+================================================================================
+
+  These credentials are provided directly in the Login page UI:
+
+  Role    Username    Password
+  ────────────────────────────
+  User    johnd       m38rmF$
+  Admin   mor_2314    83r5^_
+
+  The role is determined HARDCODED:
+    username === "mor_2314"  →  admin
+    any other valid user     →  user
+
+  Any valid user from FakeStoreAPI can be used. The full users list is
+  available at: https://fakestoreapi.com/users
+
+================================================================================
+17. KNOWN ISSUES & NOTES
+================================================================================
+
+  1. Response interceptor logic bug (src/api/instance/api.js):
+     The condition `response.status !== 200 || response.status !== 201`
+     is always true for any status code. This only triggers a console log
+     and does not break functionality. The correct check would be:
+       `response.status !== 200 && response.status !== 201`
+
+  2. FakeStoreAPI mutations are not real:
+     POST, PUT, and DELETE requests to FakeStoreAPI return simulated
+     responses. The server does not actually persist any changes.
+     All state updates are reliable within a session via Redux, but
+     data resets on next full load from the API.
+
+  3. Admin role is hardcoded:
+     Only the user with username "mor_2314" receives the "admin" role.
+     All other valid FakeStoreAPI users default to "user" role.
+
+  4. AuthContext is unused:
+     AuthContext.jsx and authReducer.js remain in the codebase as a
+     legacy/alternative implementation. The app uses Redux (authSlice.js)
+     for all authentication. The useAuth hook is also unused.
+
+  5. useLocalStorage hook is unused:
+     The hook exists and works correctly but is not consumed anywhere.
+     Persistence is handled by redux-persist + authSlice.
+
+  6. Empty directories:
+     src/services/ and src/utils/ are empty and reserved for future use.
+
+  7. ManageProducts Search is not wired up:
+     The Search component in ManageProducts.jsx passes an empty string ""
+     as the onSearchChange prop, so searching is not functional on that page.
+
+  8. Duplicate auth persistence:
+     Auth data is stored both in localStorage directly (via authSlice thunk)
+     AND via redux-persist. This is redundant but harmless.
+
+  9. getSingleProduct API function is defined but never called:
+     Products detail page reads from Redux store using Array.find() instead
+     of making a fresh GET /products/:id API call.
+
+================================================================================
+                              END OF DOCUMENTATION
+================================================================================
