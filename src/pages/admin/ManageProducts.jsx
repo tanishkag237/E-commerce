@@ -138,7 +138,7 @@ const ManageProducts = () => {
     }
   };
 
-  if (isLoading) return  (
+  if (isLoading && products.length === 0) return  (
      <div>
         <SkeletonBar/>
         <TableSkeleton/>
