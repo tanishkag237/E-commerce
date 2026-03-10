@@ -21,13 +21,13 @@ fakeStoreApi.interceptors.response.use(
      (response)=>{
         if(response.status !== 200 && response.status !==201 ){
             // toast.error("Error in API")
-            console.log("Error in user API")
+            console.log("Error in API")
         }
         return response;
     },
     (error)=>{
         // console.log("API Error :", error.message);
-        toast.error("Network Error: Couldn't fetch details");
+        toast.error(`Network Error: Couldn't fetch details - ${error.message}`);
         return Promise.reject(error);
     }
 )

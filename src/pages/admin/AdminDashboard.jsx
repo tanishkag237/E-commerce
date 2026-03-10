@@ -7,7 +7,8 @@ import { Outlet } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProductsThunk } from "../../features/products/productSlice";
 import PageNotFound from "../PageNotFound";
-import SkeletonCard from "../../components/common/SkeletonCard";
+import SkeletonCard from "../../components/common/skeletons/SkeletonCard";
+import SkeletonBar from "../../components/common/skeletons/SkeletonBar";
 
 const AdminDashboard = () => {
   const dispatch = useDispatch();
@@ -84,14 +85,16 @@ const AdminDashboard = () => {
 
   if (isLoading)
     return (
-      <div className="grid md:grid-cols-3 gap-10 p-2 md:p-5">
-        {Array.from({ length: 5 }).map((_, index) => (
-          <SkeletonCard key={index} />
-        ))}
+      <div>
+        <SkeletonBar/>
+        <div className="grid md:grid-cols-3 gap-10 p-2 md:p-5">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <SkeletonCard key={index} />
+          ))}
+        </div>
       </div>
     );
   if (error) return <PageNotFound />;
-
 
   return (
     <div>

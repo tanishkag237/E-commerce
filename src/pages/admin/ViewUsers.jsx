@@ -4,6 +4,7 @@ import Loader from '../../components/common/Loader'
 import { toast } from 'sonner'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchUsersThunk } from '../../features/users/userSlice'
+import TableSkeleton from '../../components/common/skeletons/TableSkeleton'
 
 const userColumns = [
     {header:"ID", accessor:"id"},
@@ -27,7 +28,11 @@ const ViewUsers = () => {
         }
       },[dispatch])
 
-    if(isLoading) return <Loader/>
+    if(isLoading) return (
+      <div className='mt-20 mx-15'>
+        <TableSkeleton/>
+      </div>
+    )
     if (error) return <p className="text-red-500">{error}</p>;
 
   return (

@@ -14,9 +14,10 @@ import {
   updateProductsThunk,
   deleteProductsThunk,
 } from "../../features/products/productSlice";
-
+import SkeletonBar from "../../components/common/skeletons/SkeletonBar";
 import PageNotFound from '../PageNotFound'
 import Button from "../../components/common/Button";
+import TableSkeleton from "../../components/common/skeletons/TableSkeleton";
 
 const productColumns = [
   { header: "ID", accessor: "id" },
@@ -66,11 +67,13 @@ const ManageProducts = () => {
     isLoading,
     error,
   } = useSelector((state) => state.products);
+  
   const [openProductModal, setOpenProductModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState();
   const [deleteProduct, setDeleteProduct] = useState();
   const [isSorted, setIsSorted] = useState("default");
 
+  
   useEffect(() => {
     if (!products || products?.length === 0) {
       dispatch(fetchProductsThunk());
@@ -135,7 +138,11 @@ const ManageProducts = () => {
     }
   };
 
-  if (isLoading) return <Loader />;
+  if (isLoading) return  (
+     <div>
+        <SkeletonBar/>
+        <TableSkeleton/>
+      </div>)
   if (error) return <PageNotFound/>
 
   return (

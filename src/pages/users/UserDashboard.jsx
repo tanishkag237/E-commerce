@@ -6,7 +6,8 @@ import { usePagination } from "../../hooks/usePagination";
 import { Outlet } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchProductsThunk } from "../../features/products/productSlice";
-import SkeletonCard from "../../components/common/SkeletonCard";
+import SkeletonCard from "../../components/common/skeletons/SkeletonCard";
+import SkeletonBar from "../../components/common/skeletons/SkeletonBar";
 
 const UserDashboard = () => {
   const dispatch = useDispatch();
@@ -82,10 +83,13 @@ const UserDashboard = () => {
 
   if (isLoading)
     return (
-      <div className="grid md:grid-cols-3 gap-10 p-2 md:p-5">
-        {Array.from({ length: 6 }).map((_, index) => (
-          <SkeletonCard key={index} />
-        ))}
+      <div>
+        <SkeletonBar/>
+        <div className="grid md:grid-cols-3 gap-10 p-2 md:p-5">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <SkeletonCard key={index} />
+          ))}
+        </div>
       </div>
     );
   return (
