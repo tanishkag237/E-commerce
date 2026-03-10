@@ -16,6 +16,7 @@ import {
 } from "../../features/products/productSlice";
 
 import PageNotFound from '../PageNotFound'
+import Button from "../../components/common/Button";
 
 const productColumns = [
   { header: "ID", accessor: "id" },
@@ -159,14 +160,9 @@ const ManageProducts = () => {
           </select>
         </div>
         <Search onSearchChange={""} />
-        <button
-          onClick={() => {
+        <Button onClick={() => {
             (setOpenProductModal(true), setSelectedProduct(null));
-          }}
-          className="p-3 hover:bg-custom-green bg-green-600 text-white font-medium tracking-wide text-sm rounded-full "
-        >
-          Add Product
-        </button>
+          }} title={"Add Product"}/>
       </div>
 
       {openProductModal && (

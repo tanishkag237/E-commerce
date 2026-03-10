@@ -83,7 +83,9 @@ const UserDashboard = () => {
   if (isLoading)
     return (
       <div className="grid md:grid-cols-3 gap-10 p-2 md:p-5">
-        <SkeletonCard />
+        {Array.from({ length: 6 }).map((_, index) => (
+          <SkeletonCard key={index} />
+        ))}
       </div>
     );
   return (

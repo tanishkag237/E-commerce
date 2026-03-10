@@ -1,4 +1,5 @@
 import axios from "axios";
+import { toast } from "sonner";
 
 export const fakeStoreApi = axios.create({
     baseURL:import.meta.env.VITE_API_URL,
@@ -19,12 +20,14 @@ fakeStoreApi.interceptors.request.use(
 fakeStoreApi.interceptors.response.use(
      (response)=>{
         if(response.status !== 200 && response.status !==201 ){
+            // toast.error("Error in API")
             console.log("Error in user API")
         }
         return response;
     },
     (error)=>{
-        console.log("API Error :", error.message);
+        // console.log("API Error :", error.message);
+        toast.error("Network Error: Couldn't fetch details");
         return Promise.reject(error);
     }
 )

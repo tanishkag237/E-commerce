@@ -1,29 +1,31 @@
+import React from "react";
+import { ErrorBoundary } from "react-error-boundary";
 import { Frown } from "lucide-react";
-import { Link } from "react-router-dom";
 
-const PageNotFound = () => {
+const ErrorFallback = ({ error, resetErrorBoundary }) => {
   return (
     <div className="min-h-[70vh] flex items-center justify-center px-4">
       <div className="text-center space-y-6">
-
         <div className="flex justify-center">
           <Frown size={64} className="text-secondary" />
         </div>
 
         <h1 className="text-3xl font-semibold text-gray-800">
-          Sorry! The page you’re looking for isn’t available.
+          Uh oh! Something went wrong!
         </h1>
 
-        <Link
-          to="/"
+        <h1 className="text-3xl font-semibold text-gray-800">
+          {error.message}
+        </h1>
+        <button
           className="inline-block px-6 py-3 bg-custom-wine text-white rounded-xl hover:bg-gray-800 transition"
+          onClick={resetErrorBoundary}
         >
-          Go back to Login
-        </Link>
-
+          Try again
+        </button>
       </div>
     </div>
   );
 };
 
-export default PageNotFound;
+export default ErrorFallback;

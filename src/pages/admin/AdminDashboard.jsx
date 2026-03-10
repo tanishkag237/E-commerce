@@ -3,7 +3,6 @@ import ProductCard from "../../components/ProductCard";
 import Search from "../../components/common/Search";
 import { ChevronLeftIcon, ChevronRightIcon, Filter } from "lucide-react";
 import { usePagination } from "../../hooks/usePagination";
-
 import { Outlet } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProductsThunk } from "../../features/products/productSlice";
@@ -86,10 +85,13 @@ const AdminDashboard = () => {
   if (isLoading)
     return (
       <div className="grid md:grid-cols-3 gap-10 p-2 md:p-5">
-        <SkeletonCard />
+        {Array.from({ length: 5 }).map((_, index) => (
+          <SkeletonCard key={index} />
+        ))}
       </div>
     );
   if (error) return <PageNotFound />;
+
 
   return (
     <div>

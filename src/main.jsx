@@ -6,13 +6,17 @@ import { Provider } from "react-redux";
 import { persistor, store } from "./store.js";
 import { PersistGate } from "redux-persist/integration/react";
 import Loader from "./components/common/Loader.jsx";
+import { ErrorBoundary } from "react-error-boundary";
+import ErrorFallback from "./components/ErrorFallback.jsx";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <Provider store={store}>
-      <PersistGate loading={<Loader />} persistor={persistor}>
-        <App />
-      </PersistGate>
-    </Provider>
+    <ErrorBoundary FallbackComponent={ErrorFallback}>
+      <Provider store={store}>
+        <PersistGate loading={<Loader />} persistor={persistor}>
+          <App />
+        </PersistGate>
+      </Provider>
+    </ErrorBoundary>
   </StrictMode>,
 );
