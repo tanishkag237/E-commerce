@@ -127,6 +127,7 @@ const ManageProducts = () => {
   const handleProductDeletion = async(id) => {
     try{
       await dispatch(deleteProductsThunk(id)).unwrap()
+      toast.success("Product deleted successfully!")
       setDeleteProduct(null);
     } catch (err) {
       toast.error(err || "Something went wrong.");

@@ -1,40 +1,39 @@
 import React, { useEffect, useState, useMemo } from "react";
 import ProductCard from "../../components/ProductCard";
 import Search from "../../components/common/Search";
-import Loader from "../../components/common/Loader";
-import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  Filter,
-} from "lucide-react";
+import { ChevronLeftIcon, ChevronRightIcon, Filter } from "lucide-react";
 import { usePagination } from "../../hooks/usePagination";
 
 import { Outlet } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProductsThunk } from "../../features/products/productSlice";
-import PageNotFound from "../PageNotFound"
+import PageNotFound from "../PageNotFound";
+import SkeletonCard from "../../components/common/SkeletonCard";
 
 const AdminDashboard = () => {
-  const dispatch = useDispatch()
-  const {data: products=[], isLoading, error} = useSelector((state)=>state.products)
- 
+  const dispatch = useDispatch();
+  const {
+    data: products = [],
+    isLoading,
+    error,
+  } = useSelector((state) => state.products);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [isSorted, setIsSorted] = useState("default");
 
- useEffect(() => {
+  useEffect(() => {
     if (!products || products?.length === 0) {
       dispatch(fetchProductsThunk());
     }
   }, [dispatch]);
 
-
   const categories = useMemo(() => {
-    const uniqueCategories = [...new Set(products.map(p => p.category))];
+    const uniqueCategories = [...new Set(products.map((p) => p.category))];
     return ["All", ...uniqueCategories];
   }, [products]);
 
-   const handleCategoryChange = (e) => {
+  const handleCategoryChange = (e) => {
     setSelectedCategory(e.target.value);
   };
 
@@ -52,41 +51,46 @@ const AdminDashboard = () => {
     });
   }, [products, searchTerm, selectedCategory]);
 
-    const sortedProducts = useMemo(() => {
-      let newdata = [...filteredProducts];
-  
-      if (isSorted === "asc") {
-        newdata.sort((a, b) =>
-          a.title.toLowerCase().localeCompare(b.title.toLowerCase()),
-        );
-      }
-  
-      if (isSorted === "desc") {
-        newdata.sort((a, b) =>
-          b.title.toLowerCase().localeCompare(a.title.toLowerCase()),
-        );
-      }
-  
-      if (isSorted === "lowtohigh") {
-        newdata.sort((a, b) => a.price - b.price);
-      }
-  
-      if (isSorted === "hightolow") {
-        newdata.sort((a, b) => b.price - a.price);
-      }
-  
-      if (isSorted === "default") {
-        newdata.sort((a, b) => a.id - b.id);
-      }
-      return newdata;
-    }, [filteredProducts, isSorted]);
+  const sortedProducts = useMemo(() => {
+    let newdata = [...filteredProducts];
+
+    if (isSorted === "asc") {
+      newdata.sort((a, b) =>
+        a.title.toLowerCase().localeCompare(b.title.toLowerCase()),
+      );
+    }
+
+    if (isSorted === "desc") {
+      newdata.sort((a, b) =>
+        b.title.toLowerCase().localeCompare(a.title.toLowerCase()),
+      );
+    }
+
+    if (isSorted === "lowtohigh") {
+      newdata.sort((a, b) => a.price - b.price);
+    }
+
+    if (isSorted === "hightolow") {
+      newdata.sort((a, b) => b.price - a.price);
+    }
+
+    if (isSorted === "default") {
+      newdata.sort((a, b) => a.id - b.id);
+    }
+    return newdata;
+  }, [filteredProducts, isSorted]);
 
   const { currentData, currentPage, totalPages, nextPage, prevPage } =
     usePagination(sortedProducts, 5);
 
-  if (isLoading) return <Loader />;
-  if(error) return <PageNotFound/>
-  
+  if (isLoading)
+    return (
+      <div className="grid md:grid-cols-3 gap-10 p-2 md:p-5">
+        <SkeletonCard />
+      </div>
+    );
+  if (error) return <PageNotFound />;
+
   return (
     <div>
       <div className="m-2 md:flex mb-2 justify-end">
@@ -111,19 +115,18 @@ const AdminDashboard = () => {
         <Search onSearchChange={setSearchTerm} />
 
         <div className="flex bg-custom-wine p-2 rounded-4xl justify-between items-center text-center mx-2">
-        <Filter size={15} className="text-white"/>
-        <select 
-          value={selectedCategory}
-          onChange={handleCategoryChange}
+          <Filter size={15} className="text-white" />
+          <select
+            value={selectedCategory}
+            onChange={handleCategoryChange}
             className="text-white title text-sm outline-none focus:outline-none border-none focus:ring-0"
           >
-            {categories.map((cat)=>(
-              <option key={cat} value={cat}
-              >
+            {categories.map((cat) => (
+              <option key={cat} value={cat}>
                 {cat}
               </option>
             ))}
-        </select>
+          </select>
         </div>
       </div>
       <div className="grid md:grid-cols-3 gap-10 p-2 md:p-5">

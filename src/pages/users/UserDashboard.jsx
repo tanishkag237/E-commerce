@@ -1,40 +1,40 @@
 import React, { useEffect, useState, useMemo } from "react";
 import ProductCard from "../../components/ProductCard";
 import Search from "../../components/common/Search";
-import Loader from "../../components/common/Loader";
-import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
- Filter
-} from "lucide-react";
+import { ChevronLeftIcon, ChevronRightIcon, Filter } from "lucide-react";
 import { usePagination } from "../../hooks/usePagination";
 import { Outlet } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchProductsThunk } from "../../features/products/productSlice";
+import SkeletonCard from "../../components/common/SkeletonCard";
 
 const UserDashboard = () => {
- const dispatch = useDispatch()
-  const {data: products=[], isLoading, error} = useSelector((state)=>state.products)
+  const dispatch = useDispatch();
+  const {
+    data: products = [],
+    isLoading,
+    error,
+  } = useSelector((state) => state.products);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [isSorted, setIsSorted] = useState("default");
 
-   useEffect(() => {
-      if (!products || products?.length === 0) {
-        dispatch(fetchProductsThunk());
-      }
-    }, [dispatch]);
+  useEffect(() => {
+    if (!products || products?.length === 0) {
+      dispatch(fetchProductsThunk());
+    }
+  }, [dispatch]);
 
-    const categories = useMemo(() => {
-      const uniqueCategories = [...new Set(products.map(p => p.category))];
-      return ["All", ...uniqueCategories];
-    }, [products]);
+  const categories = useMemo(() => {
+    const uniqueCategories = [...new Set(products.map((p) => p.category))];
+    return ["All", ...uniqueCategories];
+  }, [products]);
 
-    const handleCategoryChange = (e) => {
+  const handleCategoryChange = (e) => {
     setSelectedCategory(e.target.value);
   };
 
- const filteredProducts = useMemo(() => {
+  const filteredProducts = useMemo(() => {
     return products.filter((prod) => {
       const matchesSearch = (prod.title ?? "")
         .toLowerCase()
@@ -48,38 +48,44 @@ const UserDashboard = () => {
     });
   }, [products, searchTerm, selectedCategory]);
 
-    const sortedProducts = useMemo(() => {
-      let newdata = [...filteredProducts];
-  
-      if (isSorted === "asc") {
-        newdata.sort((a, b) =>
-          a.title.toLowerCase().localeCompare(b.title.toLowerCase()),
-        );
-      }
-  
-      if (isSorted === "desc") {
-        newdata.sort((a, b) =>
-          b.title.toLowerCase().localeCompare(a.title.toLowerCase()),
-        );
-      }
-  
-      if (isSorted === "hightolow") {
-        newdata.sort((a, b) => a.price - b.price);
-      }
-  
-      if (isSorted === "lowtohigh") {
-        newdata.sort((a, b) => b.price - a.price);
-      }
-  
-      if (isSorted === "default") {
-        newdata.sort((a, b) => a.id - b.id);
-      }
-      return newdata;
-    }, [filteredProducts, isSorted]);
+  const sortedProducts = useMemo(() => {
+    let newdata = [...filteredProducts];
 
-  const { currentData, currentPage, totalPages, nextPage, prevPage } = usePagination(sortedProducts, 6);
+    if (isSorted === "asc") {
+      newdata.sort((a, b) =>
+        a.title.toLowerCase().localeCompare(b.title.toLowerCase()),
+      );
+    }
 
-  if (isLoading) return <Loader />;
+    if (isSorted === "desc") {
+      newdata.sort((a, b) =>
+        b.title.toLowerCase().localeCompare(a.title.toLowerCase()),
+      );
+    }
+
+    if (isSorted === "hightolow") {
+      newdata.sort((a, b) => a.price - b.price);
+    }
+
+    if (isSorted === "lowtohigh") {
+      newdata.sort((a, b) => b.price - a.price);
+    }
+
+    if (isSorted === "default") {
+      newdata.sort((a, b) => a.id - b.id);
+    }
+    return newdata;
+  }, [filteredProducts, isSorted]);
+
+  const { currentData, currentPage, totalPages, nextPage, prevPage } =
+    usePagination(sortedProducts, 6);
+
+  if (isLoading)
+    return (
+      <div className="grid md:grid-cols-3 gap-10 p-2 md:p-5">
+        <SkeletonCard />
+      </div>
+    );
   return (
     <div>
       <div className="m-2 flex justify-end">
@@ -103,20 +109,18 @@ const UserDashboard = () => {
         </div>
         <Search onSearchChange={setSearchTerm} />
         <div className="flex bg-custom-wine p-2 rounded-4xl justify-between items-center text-center mx-2">
-        <Filter size={15} className="text-white"/>
-        <select 
-          value={selectedCategory}
-          onChange={handleCategoryChange}
+          <Filter size={15} className="text-white" />
+          <select
+            value={selectedCategory}
+            onChange={handleCategoryChange}
             className="text-white title text-sm outline-none focus:outline-none border-none focus:ring-0"
           >
-            {categories.map((cat)=>(
-              <option key={cat} value={cat}
-              >
+            {categories.map((cat) => (
+              <option key={cat} value={cat}>
                 {cat}
               </option>
             ))}
-        </select>
-
+          </select>
         </div>
       </div>
       <div className="grid md:grid-cols-3 gap-10 p-2 md:p-5">
@@ -137,7 +141,9 @@ const UserDashboard = () => {
         >
           <ChevronLeftIcon />
         </button>
-        <p className="text-custom-wine font-medium text-md text-center">{currentPage} / {totalPages}</p>
+        <p className="text-custom-wine font-medium text-md text-center">
+          {currentPage} / {totalPages}
+        </p>
         <button
           disabled={currentPage === totalPages}
           className={`px-3 py-1 rounded 
@@ -151,7 +157,7 @@ const UserDashboard = () => {
           <ChevronRightIcon />
         </button>
       </div>
-      <Outlet/>
+      <Outlet />
     </div>
   );
 };
